@@ -5,7 +5,7 @@ import time
 import itertools
 
 
-def calibrate_glass(servo: Servo, initial_position):
+def calibrate_glass(servo: Servo):
     while True:
         command = input("Move glass (amount) or done (d) ")
         if command == "d":
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         servoTurnerMain.glide_position(20, speed=5)  # So that the glass doesn't hit it
 
         print("Calibrating glass")
-        calibrate_glass(servoGlass, 0)
+        calibrate_glass(servoGlass)
         servoGlass.initial_position = servoGlass.get_position()
 
         servoGlass.glide_position(
