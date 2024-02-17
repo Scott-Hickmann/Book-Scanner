@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Box, Image, VStack, Text, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Image,
+  VStack,
+  Text,
+  Button,
+  HStack,
+  Heading,
+} from "@chakra-ui/react";
 import Lottie from "lottie-react";
 import bookFlipAnimation from "../../public/book-flip.json";
+import Tilt from "react-parallax-tilt";
 import Link from "next/link";
 
 const supabase = createClient(
@@ -14,13 +23,14 @@ export default function DocStream() {
   const [imageUrl, setImageUrl] = useState<string>("");
   const [docId, setDocId] = useState<string>("");
   const [scanningStarted, setScanningStarted] = useState(false); // State to track scanning status
-
+  const [numPagesScanned, setNumPagesScanned] = useState(0);
+  const [numWordsScanned, setNumWordsScanned] = useState(0);
 
   useEffect(() => {
     // Function to fetch and set the image URL
     const fetchAndSetImageUrl = async (imageName: string) => {
       const { data, error } = await supabase.storage
-        .from("public/images")
+        .from("public/pages")
         .download(imageName);
 
       if (error) {
@@ -38,12 +48,17 @@ export default function DocStream() {
       .channel("images-updates-watcher")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "images" },
+        { event: "INSERT", schema: "public", table: "pages" },
         async (payload) => {
           console.log("Change received!", payload);
           setScanningStarted(true); // Update scanning state when a new image is inserted
           await fetchAndSetImageUrl(payload.new.image_name);
           await setDocId(payload.new.doc_id);
+
+          setNumPagesScanned(numPagesScanned + 2);
+          setNumWordsScanned(
+            numWordsScanned + payload.new.text.trim().split(" ").length
+          );
         }
       )
       .subscribe();
@@ -58,26 +73,67 @@ export default function DocStream() {
   return (
     <VStack maxH="50%">
       <Box>
-        {imageUrl ? (
-          <VStack>
-            <Box pos="relative" borderRadius="10px">
-              <Image src={imageUrl} alt="Document" />
-            </Box>
-            <Button
-              as={Link}
-              href={`/analysis/${docId}`}
-              colorScheme="teal"
-              size="lg"
+        {/* {imageUrl ? ( */}
+        <VStack p={5}>
+          <Tilt
+            tiltMaxAngleX={2}
+            tiltMaxAngleY={2}
+            glareEnable={true}
+            glareMaxOpacity={0.1}
+            glareColor="#ffffff"
+            glarePosition="bottom"
+            glareBorderRadius="20px"
+            perspective={500}
+          >
+            <Box
+              pos="relative"
+              border="darkgrey 1px solid"
+              borderRadius="30px"
+              overflow="hidden"
             >
-              Analyze PDF
-            </Button>
-          </VStack>
-        ) : (
+              <Image src="test_page.jpg" alt="Document" />
+              <Box
+                pos="absolute"
+                right="0"
+                bottom="0"
+                bgColor="gray.800"
+                p="4"
+                borderRadius="8px"
+                m="10"
+                opacity="80%"
+                className="inner-element"
+              >
+                <HStack justifyContent="space-evenly" gap={5}>
+                  <VStack>
+                    <Heading size="2xl">{numPagesScanned}</Heading>
+                    <Text>pages</Text>
+                  </VStack>
+                  <VStack>
+                    <Heading size="2xl">{numWordsScanned}</Heading>
+                    <Text>words</Text>
+                  </VStack>
+                </HStack>
+              </Box>
+            </Box>
+          </Tilt>
+          <Button
+            as={Link}
+            href={`/analysis/${docId}`}
+            colorScheme="teal"
+            size="lg"
+          >
+            Analyze PDF
+          </Button>
+        </VStack>
+        {/* ) 
+        :  */}
+        {/* (
           <VStack id="lottie" maxW="xl" maxH="xl">
             <Lottie animationData={bookFlipAnimation} loop={true} />
             <Text fontStyle="italic">Waiting for your scan...</Text>
           </VStack>
-        )}
+        ) */}
+        {/* } */}
       </Box>
     </VStack>
   );
