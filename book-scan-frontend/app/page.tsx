@@ -9,7 +9,7 @@ import DocStream from "./components/docStream";
 
 export default function Page() {
   return (
-    <VStack h="100%" w={{ base: "100%", md: "50%" }}>
+    <VStack h="100%" >
       <VStack p={5} borderBottom="1px" borderColor="gray.200" h="100%">
         <Heading size="3xl">Recollect</Heading>
         <Text fontSize="xl">Your Memories, Preserved Forever</Text>
