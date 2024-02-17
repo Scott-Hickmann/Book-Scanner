@@ -28,8 +28,6 @@ void loop() {
     if (commaIndex != -1) {
       int id = inputString.substring(0, commaIndex).toInt();
       int value = inputString.substring(commaIndex + 1).toInt();
-      Serial.println(id);
-      Serial.println(value);
       if (value >= 0 && value <= 180) {
         switch (id) {
           case SERVO_TURNER_MAIN_ID:
