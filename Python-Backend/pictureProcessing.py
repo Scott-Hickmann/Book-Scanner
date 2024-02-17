@@ -15,18 +15,10 @@ class DocumentScanner:
 
     def process_image(self, input_file_path, output_file_path):
         with open(input_file_path, 'rb') as input_file:
-            input_image = Image.open(input_file)
-            if input_image.mode != 'RGB':
-                input_image = input_image.convert('RGB')
-            rotated_image = input_image.rotate(-90, expand=True)
-            temp_image_path = input_file_path.replace('.png', '_temp.png')
-            rotated_image.save(temp_image_path)
-            with open(temp_image_path, 'rb') as temp_file:
-                temp_image_bytes = temp_file.read()
-            scanned_data = scan(temp_image_bytes)
+            input_image = input_file.read()
+            scanned_data = scan(input_image)
         with open(output_file_path, 'wb') as output_file:
             output_file.write(scanned_data)
-        os.remove(temp_image_path)
     
     def ocr_image(self, input_file_path, sharpen=False, spellcheck=True):
         img = cv2.imread(input_file_path)
@@ -72,22 +64,22 @@ class DocumentScanner:
         )
         return response.choices[0].message.content
     
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    scanner = DocumentScanner()
+# if __name__ == "__main__":
+#     logging.basicConfig(level=logging.INFO)
+#     scanner = DocumentScanner()
     
-    folder = "./Python-Backend"
-    # png_files = sorted(
-    #     [f for f in os.listdir(folder) if f.endswith('.png')],
-    #     key=lambda x: int(os.path.splitext(x)[0].split('_')[1])
-    # )
-    png_files = ["IMG_3008.png"]
-    print(png_files)
-    input_images = [os.path.join(folder, f)for f in png_files]
-    output_images = [f.replace('.png', '_scanned.png') for f in input_images]
-    whole_text = ""
-    for input_img, output_img in zip(input_images, output_images):
-        scanner.process_image(input_img, output_img)
-        text = scanner.ocr_image(output_img)
-        print(text)
-        whole_text += text + "\n"
+#     folder = "./Python-Backend"
+#     # png_files = sorted(
+#     #     [f for f in os.listdir(folder) if f.endswith('.png')],
+#     #     key=lambda x: int(os.path.splitext(x)[0].split('_')[1])
+#     # )
+#     jpg = ["IMG_3008.jpg"]
+#     print(jpg_files)
+#     input_images = [os.path.join(folder, f)for f in jpg_files]
+#     output_images = [f.replace('.jpg', '_scanned.jpg') for f in input_images]
+#     whole_text = ""
+#     for input_img, output_img in zip(input_images, output_images):
+#         scanner.process_image(input_img, output_img)
+#         text = scanner.ocr_image(output_img)
+#         print(text)
+#         whole_text += text + "\n"
