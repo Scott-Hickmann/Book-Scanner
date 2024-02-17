@@ -13,14 +13,14 @@ Servo servoGlassRight;
 
 void setup() {
   Serial.begin(9600);
-  
+
   servoTurnerMain.attach(5);
   servoTurnerSecondary.attach(6);
   servoGlassLeft.attach(9);
   servoGlassRight.attach(10);
 
   servoTurnerMain.write(90);
-  servoTurnerSecondary.write(0);
+  servoTurnerSecondary.write(180);
 }
 
 void loop() {
