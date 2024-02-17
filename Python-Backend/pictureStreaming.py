@@ -9,11 +9,11 @@ from pypdf import PdfWriter, PdfReader
 from PIL import Image
 import img2pdf
 
+from pictureProcessing import DocumentScanner
 
 load_dotenv()
-
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
+url="https://eswlryiffkybjojdjkbv.supabase.co"
+key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzd2xyeWlmZmt5YmpvamRqa2J2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcwODE1Mjc2MiwiZXhwIjoyMDIzNzI4NzYyfQ.dpyLWxhN9IbvijXrxxMKwlBve6wBoPB3noBh74SrO4s"
 supabase: Client = create_client(url, key)
 
 
@@ -35,7 +35,7 @@ def add_to_pdf(img_name, session_uuid, pdf_writer):
         img_pdf = img2pdf.convert(img_file)
 
     # Save the image PDF temporarily
-    temp_img_pdf_name = f"temp_img_{session_uuid}.pdf"
+    temp_img_pdf_name = f"./{session_uuid}/temp_img.pdf"
     with open(temp_img_pdf_name, "wb") as img_pdf_file:
         img_pdf_file.write(img_pdf)
 
@@ -44,14 +44,14 @@ def add_to_pdf(img_name, session_uuid, pdf_writer):
     pdf_writer.add_page(temp_img_pdf.pages[0])
 
     # Save the updated main PDF
-    with open(f"scan_{session_uuid}.pdf", "wb") as f:
+    with open(f"./{session_uuid}/scan.pdf", "wb") as f:
         pdf_writer.write(f)
 
     # Remove the temporary image PDF
     os.remove(temp_img_pdf_name)
 
     # Upload the updated main PDF to Supabase
-    upload_pdf_to_supabase(f"scan_{session_uuid}.pdf", session_uuid)
+    upload_pdf_to_supabase(f"./{session_uuid}/scan.pdf", session_uuid)
 
 
 def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2):
@@ -62,46 +62,37 @@ def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2):
     time.sleep(warmup_time)  # Wait for camera to warm up
     ret, frame = cap.read()
     if ret:
-        cv2.imwrite(img_name, frame)
-        print(f"Image saved as {img_name}")
-        upload_to_supabase(img_name, session_uuid)
+        raw_img_name = img_name.replace(".jpg", "_raw.jpg")
+        cv2.imwrite(raw_img_name, frame)
+        print(f"Raw image saved as {raw_img_name}.")
+        scanner = DocumentScanner()
+        scanner.process_image(raw_img_name, img_name)
+        print("Scan complete. Parsing text...")
+        text = scanner.ocr_image(img_name)
+        print("Done. uploading to Supabase.")
+        upload_to_supabase(img_name, text, session_uuid)
         add_to_pdf(img_name, session_uuid, pdf_writer)
     else:
         print("Can't receive frame (stream end?). Exiting ...")
     cap.release()
 
 
-# Upload images to supabase
-def upload_to_supabase(img_name, session_uuid):
+# Upload images and text to supabase
+def upload_to_supabase(img_name, text, session_uuid):
     try:
-        # Check if the image already exists in the storage
-        existing_files = supabase.storage.from_("images").list()
-        if any(file["name"] == img_name for file in existing_files):
-            # Delete the existing image
-            supabase.storage.from_("images").remove([img_name])
-
-        # Upload the new image to Supabase Storage
-        with open(img_name, "rb") as img_file:
-            supabase.storage.from_("images").upload(
-                path=img_name,
-                file=img_file,
-                file_options={"content_type": "image/jpeg"},
-            )
-
-        # Construct the URL for the uploaded image
         image_url = f"{url}/storage/v1/object/public/images/{img_name}"
-
-        # Prepare the data for upsert operation
         timestamp = datetime.now().isoformat()  # Current timestamp as a string
+        
         data = {
             "image_name": img_name,
             "timestamp": timestamp,
             "image_url": image_url,
             "doc_id": session_uuid,
+            "text": text,
         }
 
         # Upsert the image metadata and URL into the Supabase table
-        db_response = supabase.table("images").upsert(data).execute()
+        db_response = supabase.table("pages").upsert(data).execute()
 
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -148,7 +139,7 @@ def upload_pdf_to_supabase(pdf_name, session_uuid):
 
     except Exception as e:
         print(f"An error occurred: {e}")
-
+        
 
 def main():
     print("Finding available cameras...")
@@ -167,10 +158,12 @@ def main():
     else:
         print("No cameras found. Exiting...")
         return
+
+    os.mkdir(session_uuid)
     curr_page = 1
     try:
         while True:
-            img_name = f"page_{curr_page}-{curr_page+1}_{session_uuid}.jpg"
+            img_name = f"./{session_uuid}/page_{curr_page}-{curr_page+1}.jpg"
             curr_page += 2
             capture_image(camera_id, img_name, session_uuid, pdf_writer)
             time.sleep(3)
