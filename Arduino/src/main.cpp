@@ -1,19 +1,51 @@
 #include <Servo.h>
 #include <Arduino.h>
 
-Servo myservo;  // create servo object to control a servo
+#define SERVO_TURNER_MAIN_ID 0
+#define SERVO_TURNER_SECONDARY_ID 1
+#define SERVO_GLASS_LEFT_ID 2
+#define SERVO_GLASS_RIGHT_ID 3
+
+Servo servoTurnerMain;
+Servo servoTurnerSecondary;
+Servo servoGlassLeft;
+Servo servoGlassRight;
 
 void setup() {
-  myservo.attach(9);  // attaches the servo on pin 9 to the servo object
-  Serial.begin(9600); // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+  servoTurnerMain.attach(5);
+  servoTurnerSecondary.attach(6);
+  servoGlassLeft.attach(9);
+  servoGlassRight.attach(10);
 }
 
 void loop() {
-  if (Serial.available() > 0) {        // check if data is available to read
-    int position = Serial.parseInt();  // read the incoming integer
-    if (position >= 0 && position <= 180) { // check if the position is within the servo range
-      myservo.write(position);         // tell servo to go to position
+  if (Serial.available() > 0) {
+    // Read the incoming string until newline is received
+    String inputString = Serial.readStringUntil('\n');
+    // Expecting input format as id,value
+    int commaIndex = inputString.indexOf(',');
+    if (commaIndex != -1) {
+      int id = inputString.substring(0, commaIndex).toInt();
+      int value = inputString.substring(commaIndex + 1).toInt();
+      Serial.println(id);
+      Serial.println(value);
+      if (value >= 0 && value <= 180) {
+        switch (id) {
+          case SERVO_TURNER_MAIN_ID:
+            servoTurnerMain.write(value);
+            break;
+          case SERVO_TURNER_SECONDARY_ID:
+            servoTurnerSecondary.write(value);
+            break;
+          case SERVO_GLASS_LEFT_ID:
+            servoGlassLeft.write(value);
+            break;
+          case SERVO_GLASS_RIGHT_ID:
+            servoGlassRight.write(value);
+            break;
+        }
+      }
     }
-    Serial.println(position);          // print the position
   }
 }
