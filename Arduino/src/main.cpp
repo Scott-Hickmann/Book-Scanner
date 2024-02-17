@@ -19,8 +19,10 @@ void setup() {
   servoGlassLeft.attach(9);
   servoGlassRight.attach(10);
 
-  servoTurnerMain.write(90);
+  servoTurnerMain.write(20);
   servoTurnerSecondary.write(180);
+  servoGlassLeft.write(0);
+  servoGlassRight.write(180);
 }
 
 void loop() {
