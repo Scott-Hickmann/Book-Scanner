@@ -1,39 +1,51 @@
 #include <Servo.h>
+#include <Arduino.h>
 
+#define SERVO_TURNER_MAIN_ID 0
+#define SERVO_TURNER_SECONDARY_ID 1
+#define SERVO_GLASS_LEFT_ID 2
+#define SERVO_GLASS_RIGHT_ID 3
 
-Servo myservo;  // create servo object to control a servo
-
-// twelve servo objects can be created on most boards
-
-
-int pos = 0;    // variable to store the servo position
-
+Servo servoTurnerMain;
+Servo servoTurnerSecondary;
+Servo servoGlassLeft;
+Servo servoGlassRight;
 
 void setup() {
-
-  myservo.attach(9);  // attaches the servo on pin 9 to the servo object
-
+  Serial.begin(9600);
+  servoTurnerMain.attach(5);
+  servoTurnerSecondary.attach(6);
+  servoGlassLeft.attach(9);
+  servoGlassRight.attach(10);
 }
 
-
 void loop() {
-
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-
-    // in steps of 1 degree
-
-  myservo.write(pos);              // tell servo to go to position in variable 'pos'
-
-    delay(15);                       // waits 15ms for the servo to reach the position
-
+  if (Serial.available() > 0) {
+    // Read the incoming string until newline is received
+    String inputString = Serial.readStringUntil('\n');
+    // Expecting input format as id,value
+    int commaIndex = inputString.indexOf(',');
+    if (commaIndex != -1) {
+      int id = inputString.substring(0, commaIndex).toInt();
+      int value = inputString.substring(commaIndex + 1).toInt();
+      Serial.println(id);
+      Serial.println(value);
+      if (value >= 0 && value <= 180) {
+        switch (id) {
+          case SERVO_TURNER_MAIN_ID:
+            servoTurnerMain.write(value);
+            break;
+          case SERVO_TURNER_SECONDARY_ID:
+            servoTurnerSecondary.write(value);
+            break;
+          case SERVO_GLASS_LEFT_ID:
+            servoGlassLeft.write(value);
+            break;
+          case SERVO_GLASS_RIGHT_ID:
+            servoGlassRight.write(value);
+            break;
+        }
+      }
+    }
   }
-
-  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-
-    delay(15);                       // waits 15ms for the servo to reach the position
-
-  }
-
 }
