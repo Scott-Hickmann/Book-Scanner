@@ -2,17 +2,17 @@ import time
 
 
 class Servo:
-    def __init__(self, servo_id, servo_manager, initial_position):
-        self.servo_id = servo_id
+    def __init__(self, id, servo_manager, initial_position):
+        self.id = id
         self.servo_manager = servo_manager
         self.initial_position = initial_position
-        self.reset()
+        self.set_position(initial_position)
 
-    def set_position(self, target):
-        self.servo_manager.set_position(self.servo_id, target)
-        while self.get_position() != target:
-            time.sleep(0.05)
-        self.position = target
+    def set_position(self, target, wait=True):
+        self.servo_manager.set_position(self.id, target)
+        if wait:
+            while self.servo_manager.get_position(self.id) != target:
+                time.sleep(0.05)
 
     def glide_position(self, target, speed=1):
         current_position = self.get_position()
@@ -27,12 +27,22 @@ class Servo:
                 # Otherwise, move a step towards the target
                 next_position = current_position + step
 
-            self.servo_manager.set_position(self.servo_id, next_position)
+            self.set_position(next_position, wait=False)
             time.sleep(0.05 / speed)
             current_position = next_position
 
     def get_position(self):
-        return self.servo_manager.get_position(self.servo_id)
+        return self.servo_manager.get_position(self.id)
 
-    def reset(self):
-        self.set_position(self.initial_position)
+
+class InvertedServo(Servo):
+    def set_position(self, target, wait=True):
+        target = 180 - target
+        super().set_position(target, wait)
+
+    def glide_position(self, target, speed=1):
+        target = 180 - target
+        super().glide_position(target, speed)
+
+    def get_position(self):
+        return 180 - super().get_position()
