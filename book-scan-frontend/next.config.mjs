@@ -3,5 +3,5 @@ import MillionLint from '@million/lint';
 const nextConfig = {};
 
 export default MillionLint.next(
-  nextConfig, { rsc: true }
+  nextConfig, { rsc: true, dev: true}
 );
