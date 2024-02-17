@@ -17,7 +17,7 @@ export default function Page() {
       {/* <DocStream/> */}
       <VStack id="wait">
         <Box id="lottie" maxW="xl" maxH="xl">
-          <Lottie animationData={bookFlipAnimation} loop={true} />
+          {/* <Lottie animationData={bookFlipAnimation} loop={true} /> */}
         </Box>
         <Text fontStyle="italic" color="darkgray">
           Awaiting scan...
