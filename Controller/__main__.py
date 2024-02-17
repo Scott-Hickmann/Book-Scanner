@@ -63,7 +63,12 @@ if __name__ == "__main__":
         calibrate_glass(servoGlass, 0)
         servoGlass.initial_position = servoGlass.get_position()
 
-        servoTurnerMain.glide_position(INITIAL_TURNER_MAIN_POSITION, speed=5)
+        servoGlass.glide_position(
+            0, speed=5
+        )  # Bring the glass back up to avoid hitting the turner
+        servoTurnerMain.glide_position(
+            INITIAL_TURNER_MAIN_POSITION, speed=5
+        )  # Bring the turner back to its initial position
         servoTurnerSecondary.glide_position(INITIAL_TURNER_SECONDARY_POSITION, speed=5)
 
         print("Calibrating turner")
@@ -73,11 +78,6 @@ if __name__ == "__main__":
 
         print("Calibration finished")
 
-        servoTurnerMain.glide_position(servoTurnerMain.initial_position, speed=3)
-        servoTurnerSecondary.glide_position(
-            servoTurnerSecondary.initial_position, speed=5
-        )
-        servoGlass.glide_position(0, speed=5)
         for i in itertools.count():
             print(f"Starting page {i}")
             # 1. Turn the page
