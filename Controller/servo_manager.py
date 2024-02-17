@@ -34,15 +34,15 @@ class ServoManager:
             raise Exception(f"Failed to connect to Arduino on {port}")
 
     def set_position(self, servo_id, position):
-        print(f"Setting servo {servo_id} to position {position}")
         data = f"{servo_id},{position}\n"
         self.arduino.write(data.encode("utf-8"))
-        # time.sleep(0.5)
-        # self.arduino.write(f"h".encode("utf-8"))
-        # time.sleep(1)
-        # data = self.arduino.readline()
-        # time.sleep(0.1)
-        # print(data)
-        # data = self.arduino.readline()
-        # time.sleep(0.1)
-        # print(data)
+
+    def get_position(self, servo_id):
+        data = f"{servo_id},-1\n"
+        self.arduino.write(data.encode("utf-8"))
+        while True:
+            if self.arduino.in_waiting > 0:
+                break
+            time.sleep(0.05)
+        data = self.arduino.readline()
+        return int(data.decode("utf-8"))

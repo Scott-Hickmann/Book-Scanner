@@ -13,10 +13,14 @@ Servo servoGlassRight;
 
 void setup() {
   Serial.begin(9600);
+  
   servoTurnerMain.attach(5);
   servoTurnerSecondary.attach(6);
   servoGlassLeft.attach(9);
   servoGlassRight.attach(10);
+
+  servoTurnerMain.write(90);
+  servoTurnerSecondary.write(0);
 }
 
 void loop() {
@@ -41,6 +45,21 @@ void loop() {
             break;
           case SERVO_GLASS_RIGHT_ID:
             servoGlassRight.write(value);
+            break;
+        }
+      } else if (value == -1) { // Get value
+        switch (id) {
+          case SERVO_TURNER_MAIN_ID:
+            Serial.println(servoTurnerMain.read());
+            break;
+          case SERVO_TURNER_SECONDARY_ID:
+            Serial.println(servoTurnerSecondary.read());
+            break;
+          case SERVO_GLASS_LEFT_ID:
+            Serial.println(servoGlassLeft.read());
+            break;
+          case SERVO_GLASS_RIGHT_ID:
+            Serial.println(servoGlassRight.read());
             break;
         }
       }
