@@ -1,35 +1,41 @@
-from docscan.doc import scan
+from doc import scan
 import logging
-
+import pytesseract
+from PIL import Image
+import os
 
 class DocumentScanner:
     def __init__(self):
         self.model_downloaded = False
 
     def process_image(self, input_file_path, output_file_path):
-        # Inform the user if the model is potentially being downloaded
-        if not self.model_downloaded:
-            logging.info(
-                "Processing the image for the first time might take longer due to model download."
-            )
+        with open(input_file_path, 'rb') as input_file:
+            input_image = Image.open(input_file)
+            if input_image.mode != 'RGB':
+                input_image = input_image.convert('RGB')
+            rotated_image = input_image.rotate(-90, expand=True)
+            temp_image_path = input_file_path.replace('.png', '_temp.png')
+            rotated_image.save(temp_image_path)
+            with open(temp_image_path, 'rb') as temp_file:
+                temp_image_bytes = temp_file.read()
+            scanned_data = scan(temp_image_bytes)
+        with open(output_file_path, 'wb') as output_file:
+            output_file.write(scanned_data)
+        os.remove(temp_image_path)
 
-        # Open the input file in binary mode and read its contents
-        with open(input_file_path, "rb") as file:
-            image_data = file.read()
-
-        # Process the image data with the 'scan' function
-        processed_image_data = scan(image_data)
-
-        # After the first successful scan, assume the model is downloaded
-        self.model_downloaded = True
-
-        # Write the processed image data to the output file
-        with open(output_file_path, "wb") as out_file:
-            out_file.write(processed_image_data)
-
-
-# Usage example
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     scanner = DocumentScanner()
-    scanner.process_image("pageCheck.jpg", "out.png")
+    
+    folder = "./Python-Backend"
+    png_files = sorted(
+        [f for f in os.listdir(folder) if f.endswith('.png')],
+        key=lambda x: int(os.path.splitext(x)[0].split('_')[1])
+    )
+    print(png_files)
+    input_images = [os.path.join(folder, f)for f in png_files]
+    output_images = [f.replace('.png', '_scanned.png') for f in input_images]
+    for input_image, output_img in zip(input_images, output_images):
+        scanner.process_image(input_image, output_img)
+        text = pytesseract.image_to_string(Image.open(output_img))
+        print(text)
