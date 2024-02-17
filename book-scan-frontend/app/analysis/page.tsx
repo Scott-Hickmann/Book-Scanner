@@ -15,7 +15,14 @@ import {
 export default function Page() {
   return (
     <VStack w={{ base: "100%", md: "50%" }} margin="auto" p={3}>
-      <HStack justifyContent="space-between" w="100%">
+      <HStack
+        justifyContent="space-between"
+        w="100%"
+        borderBottom="1px"
+        borderColor="gray.600"
+        p={3}
+        mb={5}
+      >
         <Heading size="2xl">Your Memories</Heading>
         <Button>Ask Questions</Button>
       </HStack>

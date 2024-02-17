@@ -12,7 +12,7 @@ export default function Page() {
         <Heading size="3xl">Recollect</Heading>
         <Text fontSize="xl">Your Memories, Preserved Forever</Text>
       </VStack>
-      <Box id="pdf-area">
+      <Box id="pdf-area" maxW="lg" maxH="lg">
         <Lottie animationData={bookFlipAnimation} loop={true} />
       </Box>
     </VStack>
