@@ -2,21 +2,21 @@
 "use client";
 import { ChakraProvider, StyleFunctionProps } from "@chakra-ui/react";
 import { extendTheme } from "@chakra-ui/react";
-import { Lora } from "next/font/google";
+import { Lora, Montserrat } from "next/font/google";
 
-const nextFont = Lora({
-  subsets: ["latin"],
-});
+const montserrat = Montserrat({ weight: '400', subsets: ['latin'] });
+
+const lora = Lora({ weight: '400', subsets: ['latin'] });
 
 const theme = extendTheme({
   fonts: {
-    body: nextFont.style.fontFamily,
-    heading: nextFont.style.fontFamily,
+    body: montserrat.style.fontFamily, // Set Montserrat as the default font for the body
+    heading: lora.style.fontFamily, // Set Lora as the default font for headings
   },
   initialColorMode: "dark",
   useSystemColorMode: false,
   styles: {
-    global: (props: StyleFunctionProps) => ({
+    global: (props : StyleFunctionProps) => ({
       body: {
         bg: props.colorMode === "dark" ? "gray.800" : "yellow.50",
       },

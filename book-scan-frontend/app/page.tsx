@@ -11,6 +11,7 @@ import {
   HStack,
   useColorMode,
   IconButton,
+  Spacer,
 } from "@chakra-ui/react";
 import { SunIcon } from "@chakra-ui/icons";
 import DocStream from "./components/docStream";
@@ -19,7 +20,7 @@ export default function Page() {
   const { toggleColorMode } = useColorMode();
 
   return (
-    <VStack h="100%">
+    <VStack h="100%" minH="100vh" justifyContent="space-between" w="100%">
       <HStack w="100%" borderBottom="1px" borderColor="gray.600" px={8}>
         <Button as={Link} href="/analysis">
           Past Scans
@@ -34,7 +35,11 @@ export default function Page() {
           onClick={toggleColorMode}
         />
       </HStack>
-      <DocStream />
+      <Box h="100%">
+        <DocStream />
+      </Box>
+      <Spacer/>
+      <Text py={5} color="darkgray">Made with 💚 by Lawton, Scott, Kaien, Jason</Text>
     </VStack>
   );
 }

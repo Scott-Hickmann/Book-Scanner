@@ -12,6 +12,7 @@ import {
   Text,
   VStack,
   IconButton,
+  Spinner,
 } from "@chakra-ui/react";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
@@ -717,7 +718,7 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
       <Grid w="100%" templateColumns="repeat(2,1fr)" gap={6}>
         <GridItem id="summary" border="1px solid grey" borderRadius="lg" p={2} >
           <Heading size="lg">Summary</Heading>
-          <Text>{summary ? summary : "Loading"}</Text>
+          <Text>{summary ? summary : <Spinner/>}</Text>
         </GridItem>
         <GridItem id="PDF" border="1px solid grey" borderRadius="lg" p={2}>
           <Heading size="lg">PDF</Heading>
@@ -762,7 +763,7 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
         <GridItem id="quote" border="1px solid grey" borderRadius="lg" p={2}>
           <Heading size="lg">Quote</Heading>
           <Text fontSize="2xl" fontStyle="italic">
-            {quote}
+            {quote ? quote : <Spinner/>}
           </Text>
         </GridItem>
         <GridItem
