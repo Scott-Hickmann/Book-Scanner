@@ -34,6 +34,8 @@ class DocumentScanner:
         
         client = vision.ImageAnnotatorClient()
         resp =  client.text_detection(image=google_img)
+        if len(resp.text_annotations) == 0:
+            return ""
         ocr_output = resp.text_annotations[0].description.replace('\n',' ')
 
         if spellcheck:

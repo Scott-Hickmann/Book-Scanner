@@ -30,7 +30,7 @@ export default function DocStream() {
     // Function to fetch and set the image URL
     const fetchAndSetImageUrl = async (imageName: string) => {
       const { data, error } = await supabase.storage
-        .from("public/pages")
+        .from("public/images")
         .download(imageName);
 
       if (error) {
@@ -40,6 +40,7 @@ export default function DocStream() {
 
       const url = URL.createObjectURL(data);
       setImageUrl(url);
+      console.log("Image URL set to:", url);
     };
 
     // Set up a real-time subscription to the 'images' table
@@ -73,67 +74,64 @@ export default function DocStream() {
   return (
     <VStack maxH="50%">
       <Box>
-        {/* {imageUrl ? ( */}
-        <VStack p={5}>
-          <Tilt
-            tiltMaxAngleX={2}
-            tiltMaxAngleY={2}
-            glareEnable={true}
-            glareMaxOpacity={0.1}
-            glareColor="#ffffff"
-            glarePosition="bottom"
-            glareBorderRadius="20px"
-            perspective={500}
-          >
-            <Box
-              pos="relative"
-              border="darkgrey 1px solid"
-              borderRadius="30px"
-              overflow="hidden"
+        {imageUrl ? (
+          <VStack p={5}>
+            <Tilt
+              tiltMaxAngleX={2}
+              tiltMaxAngleY={2}
+              glareEnable={true}
+              glareMaxOpacity={0.1}
+              glareColor="#ffffff"
+              glarePosition="bottom"
+              glareBorderRadius="20px"
+              perspective={500}
             >
-              <Image src="test_page.jpg" alt="Document" />
               <Box
-                pos="absolute"
-                right="0"
-                bottom="0"
-                bgColor="gray.800"
-                p="4"
-                borderRadius="8px"
-                m="10"
-                opacity="80%"
-                className="inner-element"
+                pos="relative"
+                border="darkgrey 1px solid"
+                borderRadius="30px"
+                overflow="hidden"
               >
-                <HStack justifyContent="space-evenly" gap={5}>
-                  <VStack>
-                    <Heading size="2xl">{numPagesScanned}</Heading>
-                    <Text>pages</Text>
-                  </VStack>
-                  <VStack>
-                    <Heading size="2xl">{numWordsScanned}</Heading>
-                    <Text>words</Text>
-                  </VStack>
-                </HStack>
+                <Image src={imageUrl} alt="Document" />
+                <Box
+                  pos="absolute"
+                  right="0"
+                  bottom="0"
+                  bgColor="gray.800"
+                  p="4"
+                  borderRadius="8px"
+                  m="10"
+                  opacity="80%"
+                  className="inner-element"
+                >
+                  <HStack justifyContent="space-evenly" gap={5}>
+                    <VStack>
+                      <Heading size="2xl">{numPagesScanned}</Heading>
+                      <Text>pages</Text>
+                    </VStack>
+                    <VStack>
+                      <Heading size="2xl">{numWordsScanned}</Heading>
+                      <Text>words</Text>
+                    </VStack>
+                  </HStack>
+                </Box>
               </Box>
-            </Box>
-          </Tilt>
-          <Button
-            as={Link}
-            href={`/analysis/${docId}`}
-            colorScheme="teal"
-            size="lg"
-          >
-            Analyze PDF
-          </Button>
-        </VStack>
-        {/* ) 
-        :  */}
-        {/* (
+            </Tilt>
+            <Button
+              as={Link}
+              href={`/analysis/${docId}`}
+              colorScheme="teal"
+              size="lg"
+            >
+              Analyze PDF
+            </Button>
+          </VStack>
+        ) : (
           <VStack id="lottie" maxW="xl" maxH="xl">
             <Lottie animationData={bookFlipAnimation} loop={true} />
             <Text fontStyle="italic">Waiting for your scan...</Text>
           </VStack>
-        ) */}
-        {/* } */}
+        )}
       </Box>
     </VStack>
   );

@@ -12,8 +12,9 @@ import img2pdf
 from pictureProcessing import DocumentScanner
 
 load_dotenv()
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
-
 
 def list_cameras(max_checks=10):
     available_cameras = []
