@@ -8,6 +8,8 @@ import {
   Button,
   HStack,
   Heading,
+  useColorModeValue,
+  useColorMode,
 } from "@chakra-ui/react";
 import Lottie from "lottie-react";
 import bookFlipAnimation from "../../public/book-flip.json";
@@ -24,6 +26,7 @@ export default function DocStream() {
   const [docId, setDocId] = useState<string>("");
   const [scanningStarted, setScanningStarted] = useState(false); // State to track scanning status
   const [numPagesScanned, setNumPagesScanned] = useState(0);
+  const { colorMode, toggleColorMode } = useColorMode();
 
   useEffect(() => {
     // Function to fetch and set the image URL
@@ -73,8 +76,8 @@ export default function DocStream() {
         {imageUrl ? (
           <VStack p={5}>
             <Tilt
-              tiltMaxAngleX={2}
-              tiltMaxAngleY={2}
+              tiltMaxAngleX={1}
+              tiltMaxAngleY={1}
               glareEnable={true}
               glareMaxOpacity={0.1}
               glareColor="#ffffff"
@@ -87,21 +90,22 @@ export default function DocStream() {
                 border="darkgrey 1px solid"
                 borderRadius="30px"
                 overflow="hidden"
+                maxH="80vh"
               >
                 <Image src={imageUrl} alt="Document" />
                 <Box
                   pos="absolute"
                   right="0"
                   bottom="0"
-                  bgColor="gray.800"
+                  bgColor= {colorMode === "light" ? "white" : "black"}
                   p="4"
                   borderRadius="8px"
                   m="10"
-                  opacity="80%"
+                  opacity="75%"
                   className="inner-element"
                 >
                   <HStack justifyContent="space-evenly" gap={5}>
-                    <VStack>
+                    <VStack >
                       <Heading size="2xl">{numPagesScanned}</Heading>
                       <Text>pages</Text>
                     </VStack>
