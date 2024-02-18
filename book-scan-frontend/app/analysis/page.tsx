@@ -7,11 +7,13 @@ import {
   UnorderedList,
   ListItem,
   Link,
+  IconButton,
 } from "@chakra-ui/react";
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import NextLink from "next/link"; // Import Next.js Link component for client-side transitions
 import { format } from 'date-fns'; // Import format function from date-fns for formatting timestamps
+import { ArrowLeftIcon } from "@chakra-ui/icons";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -62,7 +64,7 @@ export default function Page() {
         mb={5}
       >
         <Heading size="2xl">Your Documents</Heading>
-        <Button>Ask Questions</Button>
+        <IconButton aria-label="go back" icon={<ArrowLeftIcon/>} as={Link} href="/"></IconButton>
       </HStack>
       <UnorderedList styleType="none" w="full">
         {docList.map((doc, index) => (
