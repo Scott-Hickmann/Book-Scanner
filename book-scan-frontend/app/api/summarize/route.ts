@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { text } = body;
 
-  const summary = text.slice /*(0, 1000) + "..."*/; // only copy beginning 1000
+  const summary = text /*(0, 1000) + "..."*/; // only copy beginning 1000
 
   const chatCompletion = await openai.chat.completions.create({
     messages: [
