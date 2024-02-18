@@ -5,17 +5,13 @@ from joined_motor import JoinedMotor
 import time
 import itertools
 
+UP_TIME = 3
+DOWN_TIME = 2
 
-def calibrate_glass(servo: Servo):
-    while True:
-        command = input("Move glass (amount) or done (d) ")
-        if command == "d":
-            break
-        if not command.strip("-").isnumeric():
-            print("Invalid amount")
-            continue
-        amount = int(command)
-        servo.glide_position(servo.get_position() + amount, speed=5)
+
+def calibrate_glass(motor: Motor):
+    while input("Glass is up. (y/n) ") != "y":
+        motor.move_for(1, -motorGlass.operating_speed)
 
 
 def calibrate_turner(servoTurnerMain: Servo, servoTurnerSecondary: Servo):
@@ -35,35 +31,33 @@ def calibrate_turner(servoTurnerMain: Servo, servoTurnerSecondary: Servo):
         amount = int(amountRaw)
         if command == "m":
             servoTurnerMain.glide_position(
-                servoTurnerMain.get_position() + amount, speed=5
+                max(0, min(180, servoTurnerMain.get_position() + amount)), speed=5
             )
         elif command == "s":
             servoTurnerSecondary.glide_position(
-                servoTurnerSecondary.get_position() - amount,
+                max(0, min(180, servoTurnerSecondary.get_position() - amount)),
                 speed=5,
             )
 
 
 if __name__ == "__main__":
+    servo_manager = ServoManager()
+    print("Connected to Arduino")
+    servoTurnerMain = Servo(0, servo_manager, 160)
+    servoTurnerSecondary = Servo(1, servo_manager, 180)
+    print("Servos initialized")
+    motorGlassLeft = Motor(2, servo_manager)
+    motorGlassRight = Motor(3, servo_manager)
     try:
-        servo_manager = ServoManager()
-        print("Connected to Arduino")
-        servoTurnerMain = Servo(0, servo_manager, 160)
-        servoTurnerSecondary = Servo(1, servo_manager, 180)
-        print("Servos initialized")
-        motorGlassLeft = Motor(2, servo_manager)
-        motorGlassRight = InvertedMotor(3, servo_manager)
-        motorGlass = JoinedMotor([motorGlassLeft, motorGlassRight])
-
-        servoTurnerMain.glide_position(160, speed=5)  # So that the glass doesn't hit it
+        motorGlass = JoinedMotor(
+            [motorGlassLeft, motorGlassRight]
+        )  # - is up, + is down
+        motorGlass.operating_speed = 255
 
         print("Calibrating glass")
-        # calibrate_glass(servoGlass)
-        motorGlass.operating_speed = 120
+        calibrate_glass(motorGlass)
 
-        motorGlass.move_for(5, motorGlass.operating_speed)
-        # Bring the glass back up to avoid hitting the turner
-        servoTurnerSecondary.glide_position(180, speed=5)
+        servoTurnerSecondary.glide_position(10, speed=5)
 
         print("Calibrating turner")
         calibrate_turner(servoTurnerMain, servoTurnerSecondary)
@@ -75,26 +69,30 @@ if __name__ == "__main__":
         for i in itertools.count():
             print(f"Starting page {i}")
             # 1. Turn the page
-            servoTurnerMain.glide_position(80, speed=3)
+            servoTurnerMain.glide_position(50, speed=3)
             # 2. Release the page
-            servoTurnerSecondary.glide_position(90, speed=5)
+            servoTurnerSecondary.glide_position(120, speed=3)
             time.sleep(0.5)  # Wait for the page to fall
-            servoTurnerSecondary.glide_position(30, speed=5)
-            # 3. Move out of the way for the glass
-            servoTurnerMain.glide_position(servoTurnerMain.initial_position, speed=5)
-            servoTurnerSecondary.glide_position(100, speed=5)
+            # servoTurnerSecondary.glide_position(30, speed=5)
             # 4. Bring the glass down to flatten the page
-            motorGlass.move_for(5, motorGlass.operating_speed)
+            motorGlass.move_for(DOWN_TIME, motorGlass.operating_speed)
+            # 3. Move above the glass to get ready for reset
+            servoTurnerMain.glide_position(160, speed=5)
+            servoTurnerSecondary.glide_position(120, speed=5)
             # 5. Scan the page
             # TODO
-            time.sleep(1)
+            time.sleep(2)
+            print(f"Scanned page {i}")
             # 6. Bring the glass up
-            motorGlass.move_for(5, -motorGlass.operating_speed)
+            motorGlass.move_for(UP_TIME, -motorGlass.operating_speed)
             # 7. Grab the next page
+            servoTurnerMain.glide_position(servoTurnerMain.initial_position, speed=5)
             servoTurnerSecondary.glide_position(
                 servoTurnerSecondary.initial_position, speed=5
             )
             print(f"Finished page {i}")
-            time.sleep(0.2)
+            time.sleep(0.5)
     finally:
+        motorGlassLeft.set_speed(0)
+        motorGlassRight.set_speed(0)
         servo_manager.arduino.close()

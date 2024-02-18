@@ -16,3 +16,4 @@ class JoinedMotor(Motor):
         time.sleep(seconds)
         for motor in self.motors:
             motor.set_speed(0)
+        time.sleep(0.1)
