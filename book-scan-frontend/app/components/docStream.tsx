@@ -24,7 +24,6 @@ export default function DocStream() {
   const [docId, setDocId] = useState<string>("");
   const [scanningStarted, setScanningStarted] = useState(false); // State to track scanning status
   const [numPagesScanned, setNumPagesScanned] = useState(0);
-  const [numWordsScanned, setNumWordsScanned] = useState(0);
 
   useEffect(() => {
     // Function to fetch and set the image URL
@@ -49,7 +48,7 @@ export default function DocStream() {
       .channel("images-updates-watcher")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "pages" },
+        { event: "INSERT", schema: "public", table: "images" },
         async (payload) => {
           console.log("Change received!", payload);
           setScanningStarted(true); // Update scanning state when a new image is inserted
@@ -57,9 +56,6 @@ export default function DocStream() {
           await setDocId(payload.new.doc_id);
 
           setNumPagesScanned(numPagesScanned + 2);
-          setNumWordsScanned(
-            numWordsScanned + payload.new.text.trim().split(" ").length
-          );
         }
       )
       .subscribe();
@@ -108,10 +104,6 @@ export default function DocStream() {
                     <VStack>
                       <Heading size="2xl">{numPagesScanned}</Heading>
                       <Text>pages</Text>
-                    </VStack>
-                    <VStack>
-                      <Heading size="2xl">{numWordsScanned}</Heading>
-                      <Text>words</Text>
                     </VStack>
                   </HStack>
                 </Box>

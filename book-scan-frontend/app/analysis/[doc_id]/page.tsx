@@ -675,7 +675,7 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
 
   const fetchDocumentTextAndSummarize = async () => {
     const { data, error } = await supabase
-      .from("pages")
+      .from("texts")
       .select("text")
       .eq("doc_id", params.doc_id);
     if (error) {
@@ -788,6 +788,9 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
                   }
                   return acc;
                 }, [])}
+                options={{
+                  padding: 1,
+                }}
             />
           </Box>
         </GridItem>
