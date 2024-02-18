@@ -55,7 +55,7 @@ export default function DocStream() {
           await fetchAndSetImageUrl(payload.new.image_name);
           await setDocId(payload.new.doc_id);
 
-          setNumPagesScanned(numPagesScanned + 2);
+          setNumPagesScanned((currentPages) => currentPages + 2);
         }
       )
       .subscribe();

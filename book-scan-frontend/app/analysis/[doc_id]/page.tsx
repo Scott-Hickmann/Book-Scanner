@@ -11,7 +11,9 @@ import {
   Link,
   Text,
   VStack,
+  IconButton,
 } from "@chakra-ui/react";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import ReactWordcloud from "react-wordcloud";
@@ -704,19 +706,12 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
 
   return (
     <VStack w={{ base: "100%" }} margin="auto" p={3}>
-      <HStack
-        justifyContent="space-between"
-        w="100%"
-        borderBottom="1px"
-        borderColor="gray.600"
-        p={3}
-        mb={5}
-      >
+      <HStack w="100%" borderBottom="1px" borderColor="gray.600" p={3} mb={5} justifyContent="space-between">
         <Heading size="2xl">Your Memories</Heading>
-        <Button>Ask Questions</Button>
+        <IconButton aria-label="go-back" icon={<ArrowBackIcon />} as={Link} href="/analysis"></IconButton>
       </HStack>
       <Grid w="100%" templateColumns="repeat(2,1fr)" gap={6}>
-        <GridItem id="summary" border="1px solid grey" borderRadius="lg" p={2}>
+        <GridItem id="summary" border="1px solid grey" borderRadius="lg" p={2} >
           <Heading size="lg">Summary</Heading>
           <Text>{summary ? summary : "Loading"}</Text>
         </GridItem>
@@ -788,9 +783,9 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
                   }
                   return acc;
                 }, [])}
-                options={{
-                  padding: 1,
-                }}
+              options={{
+                padding: 1,
+              }}
             />
           </Box>
         </GridItem>
