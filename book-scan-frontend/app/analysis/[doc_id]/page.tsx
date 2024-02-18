@@ -629,6 +629,10 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
       .from("pdfs")
       .getPublicUrl(`scan_${params.doc_id}.pdf`);
     setPdfUrl(data.publicUrl);
+    // if there's no 'public/' in the url, add it
+    if (!data.publicUrl.includes("public/")) {
+      setPdfUrl(data.publicUrl.replace("/images/", "/public/images/"));
+    }
   };
 
   const getDocumentSummary = async (documentText: string) => {
