@@ -115,8 +115,8 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
         </GridItem>
         <GridItem id="PDF" border="1px solid grey" borderRadius="lg" p={2}>
           <Heading size="lg">PDF</Heading>
-          <Link href={pdfUrl} isExternal>
-            <Box pos="relative" borderRadius="lg" overflow="hidden">
+          <Link href={`${pdfUrl}`} isExternal>
+            <Box pos="relative" borderRadius="lg" border="1px solid darkgray" overflow="hidden">
               <Image
                 src={imageUrl}
                 alt="Doc Preview"
