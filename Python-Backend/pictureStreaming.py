@@ -12,8 +12,6 @@ import img2pdf
 from pictureProcessing import DocumentScanner
 
 load_dotenv()
-url="https://eswlryiffkybjojdjkbv.supabase.co"
-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzd2xyeWlmZmt5YmpvamRqa2J2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcwODE1Mjc2MiwiZXhwIjoyMDIzNzI4NzYyfQ.dpyLWxhN9IbvijXrxxMKwlBve6wBoPB3noBh74SrO4s"
 supabase: Client = create_client(url, key)
 
 
@@ -35,7 +33,7 @@ def add_to_pdf(img_name, session_uuid, pdf_writer):
         img_pdf = img2pdf.convert(img_file)
 
     # Save the image PDF temporarily
-    temp_img_pdf_name = f"./{session_uuid}/temp_img.pdf"
+    temp_img_pdf_name = f"temp_img_{session_uuid}.pdf"
     with open(temp_img_pdf_name, "wb") as img_pdf_file:
         img_pdf_file.write(img_pdf)
 
@@ -44,14 +42,14 @@ def add_to_pdf(img_name, session_uuid, pdf_writer):
     pdf_writer.add_page(temp_img_pdf.pages[0])
 
     # Save the updated main PDF
-    with open(f"./{session_uuid}/scan.pdf", "wb") as f:
+    with open(f"scan_{session_uuid}.pdf", "wb") as f:
         pdf_writer.write(f)
 
     # Remove the temporary image PDF
     os.remove(temp_img_pdf_name)
 
     # Upload the updated main PDF to Supabase
-    upload_pdf_to_supabase(f"./{session_uuid}/scan.pdf", session_uuid)
+    upload_pdf_to_supabase(f"scan_{session_uuid}.pdf", session_uuid)
 
 
 def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2):
@@ -79,6 +77,14 @@ def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2):
 
 # Upload images and text to supabase
 def upload_to_supabase(img_name, text, session_uuid):
+    # Upload the new image to Supabase Storage
+    with open(img_name, "rb") as img_file:
+        supabase.storage.from_("images").upload(
+            path=img_name,
+            file=img_file,
+            file_options={"content_type": "image/jpeg"},
+        )
+    
     try:
         image_url = f"{url}/storage/v1/object/public/images/{img_name}"
         timestamp = datetime.now().isoformat()  # Current timestamp as a string
@@ -159,11 +165,10 @@ def main():
         print("No cameras found. Exiting...")
         return
 
-    os.mkdir(session_uuid)
     curr_page = 1
     try:
         while True:
-            img_name = f"./{session_uuid}/page_{curr_page}-{curr_page+1}.jpg"
+            img_name = f"page_{curr_page}-{curr_page+1}_{session_uuid}.jpg"
             curr_page += 2
             capture_image(camera_id, img_name, session_uuid, pdf_writer)
             time.sleep(3)
