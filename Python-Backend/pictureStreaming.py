@@ -8,6 +8,8 @@ import uuid
 from pypdf import PdfWriter, PdfReader
 from PIL import Image
 import img2pdf
+import threading
+from openai import OpenAI
 
 from pictureProcessing import DocumentScanner
 
@@ -27,33 +29,48 @@ def list_cameras(max_checks=10):
             break  # Stop the loop if a camera index is not available
     return available_cameras
 
-
 def add_to_pdf(img_name, session_uuid, pdf_writer):
-    # Convert image to PDF
     with open(img_name, "rb") as img_file:
         img_pdf = img2pdf.convert(img_file)
-
-    # Save the image PDF temporarily
     temp_img_pdf_name = f"temp_img_{session_uuid}.pdf"
     with open(temp_img_pdf_name, "wb") as img_pdf_file:
         img_pdf_file.write(img_pdf)
-
-    # Read the temporary image PDF and add its page to the main PDF
     temp_img_pdf = PdfReader(temp_img_pdf_name)
     pdf_writer.add_page(temp_img_pdf.pages[0])
-
-    # Save the updated main PDF
     with open(f"scan_{session_uuid}.pdf", "wb") as f:
         pdf_writer.write(f)
-
-    # Remove the temporary image PDF
     os.remove(temp_img_pdf_name)
-
-    # Upload the updated main PDF to Supabase
     upload_pdf_to_supabase(f"scan_{session_uuid}.pdf", session_uuid)
 
+def spellcheck_and_upload_text(raw_text, img_name, session_uuid):
+    print("Spellchecking text...")
+    chat_history = [
+        {
+            "role": "system",
+            "content": f"Instructions: Correct any spelling, grammatical, capitalization, or syntactical mistakes in the following text. Fix any clearly incorrect phrases if you are sure that the fix is warranted. If the text seems out of order, please reorder it to make it coherent."
+        },
+        {
+            "role": "user",
+            "content": "immediafly disagreed with my 9/26/15 A New Light! I Sister on which Journal to use. wanted to use this one, my sister wanted me to use a Circle du Silver I journal. We argued for a while. and I decided to use this journal. for the pen slot. Anyway, I have a newfound interest in making `rhymes` that are bad"
+        },
+        {
+            "role": "assistant",
+            "content": "9/26/15 I immediately disagreed with my sister on which journal to use. I wanted to use this one, my sister wanted me to use a Circle du Soleil journal. We argued for a while, and I decided to use this journal for the pen slot. Anyway, I have a newfound interest in making rhymes that are bad."
+        }
+    ]
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2):
+    chat_history.append({"role": "user", "content": f"Text: {raw_text}"})
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=chat_history,
+    )
+    text = response.choices[0].message.content
+    _upload_text_to_supabase(text, img_name, session_uuid)
+    print("Text uploaded to Supabase.")
+
+def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2, spellcheck=True):
+    print("Capturing image...")
     cap = cv2.VideoCapture(camera_id)
     if not cap.isOpened():
         print("Cannot open camera")
@@ -66,19 +83,31 @@ def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2):
         print(f"Raw image saved as {raw_img_name}.")
         scanner = DocumentScanner()
         scanner.process_image(raw_img_name, img_name)
-        print("Scan complete. Parsing text...")
-        text = scanner.ocr_image(img_name)
-        print("Done. uploading to Supabase.")
-        upload_to_supabase(img_name, text, session_uuid)
+        upload_img_to_supabase(img_name, session_uuid)
+        print("Image uploaded to Supabase.")
+        raw_text = scanner.ocr_image(img_name)
+        if spellcheck:
+            spellcheck_thread = threading.Thread(target=spellcheck_and_upload_text, args=(raw_text, img_name, session_uuid))
+            spellcheck_thread.start()
         add_to_pdf(img_name, session_uuid, pdf_writer)
     else:
         print("Can't receive frame (stream end?). Exiting ...")
     cap.release()
 
+def _upload_text_to_supabase(text, image_name, session_uuid):
+    try:
+        timestamp = datetime.now().isoformat()
+        data = {
+            "text": text,
+            "timestamp": timestamp,
+            "image_name": image_name,
+            "doc_id": session_uuid,
+        }
+        db_response = supabase.table("texts").upsert(data).execute()
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-# Upload images and text to supabase
-def upload_to_supabase(img_name, text, session_uuid):
-    # Upload the new image to Supabase Storage
+def upload_img_to_supabase(img_name, session_uuid):
     with open(img_name, "rb") as img_file:
         supabase.storage.from_("images").upload(
             path=img_name,
@@ -89,21 +118,17 @@ def upload_to_supabase(img_name, text, session_uuid):
     try:
         image_url = f"{url}/storage/v1/object/public/images/{img_name}"
         timestamp = datetime.now().isoformat()  # Current timestamp as a string
-        
         data = {
             "image_name": img_name,
             "timestamp": timestamp,
             "image_url": image_url,
             "doc_id": session_uuid,
-            "text": text,
         }
-
         # Upsert the image metadata and URL into the Supabase table
-        db_response = supabase.table("pages").upsert(data).execute()
+        db_response = supabase.table("images").upsert(data).execute()
 
     except Exception as e:
         print(f"An error occurred: {e}")
-
 
 # Upload rolling pdf to supabase
 def upload_pdf_to_supabase(pdf_name, session_uuid):
@@ -121,7 +146,7 @@ def upload_pdf_to_supabase(pdf_name, session_uuid):
                     path=pdf_name,
                     file=pdf_file,
                     file_options={
-                        "content_type": "application/pdf",
+                        "content-type": "application/pdf",
                     },
                 )
             except Exception as e:
@@ -147,7 +172,6 @@ def upload_pdf_to_supabase(pdf_name, session_uuid):
     except Exception as e:
         print(f"An error occurred: {e}")
         
-
 def main():
     print("Finding available cameras...")
     cameras = list_cameras()
