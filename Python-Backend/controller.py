@@ -11,7 +11,7 @@ DOWN_TIME = 2
 
 def calibrate_glass(motor: Motor):
     while input("Glass is up. (y/n) ") != "y":
-        motor.move_for(1, -motorGlass.operating_speed)
+        motor.move_for(1, -motor.operating_speed)
 
 
 def calibrate_turner(servoTurnerMain: Servo, servoTurnerSecondary: Servo):
@@ -40,7 +40,7 @@ def calibrate_turner(servoTurnerMain: Servo, servoTurnerSecondary: Servo):
             )
 
 
-if __name__ == "__main__":
+def control(callback):
     servo_manager = ServoManager()
     print("Connected to Arduino")
     servoTurnerMain = Servo(0, servo_manager, 160)
@@ -80,8 +80,7 @@ if __name__ == "__main__":
             servoTurnerMain.glide_position(160, speed=5)
             servoTurnerSecondary.glide_position(120, speed=5)
             # 5. Scan the page
-            # TODO
-            time.sleep(2)
+            callback()
             print(f"Scanned page {i}")
             # 6. Bring the glass up
             motorGlass.move_for(UP_TIME, -motorGlass.operating_speed)

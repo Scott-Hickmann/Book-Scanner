@@ -10,6 +10,7 @@ from PIL import Image
 import img2pdf
 import threading
 from openai import OpenAI
+from controller import control
 
 from pictureProcessing import DocumentScanner
 
@@ -78,6 +79,8 @@ def capture_image(camera_id, img_name, session_uuid, pdf_writer, warmup_time=2, 
     time.sleep(warmup_time)  # Wait for camera to warm up
     ret, frame = cap.read()
     if ret:
+        frame = cv2.flip(frame, 1) # Flip the image horizontally
+        frame = cv2.flip(frame, 0) # Flip the image vertically
         raw_img_name = img_name.replace(".jpg", "_raw.jpg")
         cv2.imwrite(raw_img_name, frame)
         print(f"Raw image saved as {raw_img_name}.")
@@ -191,14 +194,14 @@ def main():
         return
 
     curr_page = 1
-    try:
-        while True:
-            img_name = f"page_{curr_page}-{curr_page+1}_{session_uuid}.jpg"
-            curr_page += 2
-            capture_image(camera_id, img_name, session_uuid, pdf_writer)
-            time.sleep(3)
-    except KeyboardInterrupt:
-        print("Program exited by user.")
+
+    def on_scan_read():
+        nonlocal curr_page
+        img_name = f"page_{curr_page}-{curr_page+1}_{session_uuid}.jpg"
+        curr_page += 2
+        capture_image(camera_id, img_name, session_uuid, pdf_writer)
+    
+    control(on_scan_read)
 
 
 if __name__ == "__main__":
