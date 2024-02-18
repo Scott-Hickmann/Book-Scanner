@@ -10,9 +10,14 @@ import {
   Heading,
   Text,
   VStack,
+  UnorderedList,
+  ListItem,
 } from "@chakra-ui/react";
+import { useState } from "react";
 
 export default function Page() {
+  let [docList, setDocList] = useState([]);
+
   return (
     <VStack w={{ base: "100%", md: "50%" }} margin="auto" p={3}>
       <HStack
@@ -26,7 +31,8 @@ export default function Page() {
         <Heading size="2xl">Your Memories</Heading>
         <Button>Ask Questions</Button>
       </HStack>
-      <Heading>No document has been scanned!</Heading>
+      <UnorderedList>
+      </UnorderedList>
     </VStack>
   );
 }

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       {
         role: "system",
         content:
-          "Find the most iconic quote from this document. Return it verbatim.",
+          "Extract a quote from this document. Return it verbatim. DO NOT mention anything else.",
       },
       {
         role: "user",

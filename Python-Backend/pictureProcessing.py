@@ -1,4 +1,4 @@
-from doc import scan
+from docscan.doc import scan
 import logging
 from PIL import Image
 import os
