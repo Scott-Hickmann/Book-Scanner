@@ -1,12 +1,8 @@
 "use client";
 import {
-  Box,
   Button,
-  Grid,
-  GridItem,
   HStack,
   Heading,
-  Text,
   VStack,
   UnorderedList,
   ListItem,

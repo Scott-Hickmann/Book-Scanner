@@ -130,6 +130,9 @@ export default function DocStream() {
           <VStack id="lottie" maxW="xl" maxH="xl">
             <Lottie animationData={bookFlipAnimation} loop={true} />
             <Text fontStyle="italic">Waiting for your scan...</Text>
+            <Text fontSize="sm" color="gray.500">
+              (Open the app on your phone and start scanning a document)
+            </Text>
           </VStack>
         )}
       </Box>
