@@ -23,32 +23,77 @@ const supabase = createClient(
 export default function PageAnal({ params }: { params: { doc_id: string } }) {
   const [imageUrl, setImageUrl] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
+  const [quote, setQuote] = useState("");
+  const [summary, setSummary] = useState("");
 
   useEffect(() => {
-    const fetchImage = async () => {
-      const { data, error } = await supabase.storage
-        .from("images")
-        .download(`page_1-2_${params.doc_id}.jpg`);
-
-      if (error) {
-        console.error("Error fetching image:", error);
-        return;
-      }
-
-      const url = URL.createObjectURL(data);
-      setImageUrl(url);
-    };
-
-    const fetchPdfUrl = () => {
-      const { data } = supabase.storage
-        .from("pdfs")
-        .getPublicUrl(`scan_${params.doc_id}.pdf`);
-      setPdfUrl(data.publicUrl);
-    };
-
     fetchImage();
     fetchPdfUrl();
+    fetchDocumentTextAndSummarize();
   }, [params.doc_id]);
+
+  const fetchImage = async () => {
+    const { data, error } = await supabase.storage
+      .from("images")
+      .download(`page_1-2_${params.doc_id}.jpg`);
+
+    if (error) {
+      console.error("Error fetching image:", error);
+      return;
+    }
+
+    const url = URL.createObjectURL(data);
+    setImageUrl(url);
+  };
+
+  const fetchPdfUrl = () => {
+    const { data } = supabase.storage
+      .from("pdfs")
+      .getPublicUrl(`scan_${params.doc_id}.pdf`);
+    setPdfUrl(data.publicUrl);
+  };
+
+  const getDocumentSummary = async (documentText: string) => {
+    try {
+      const response = await fetch("/api/summarize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: documentText }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const summaryData = await response.json();
+      console.log(summaryData);
+      setSummary(summaryData.response); // Update state with the summary
+    } catch (error) {
+      console.error("Error getting document summary:", error);
+    }
+  };
+
+  const fetchDocumentTextAndSummarize = async () => {
+    const { data, error } = await supabase
+      .from("pages")
+      .select("text")
+      .eq("doc_id", params.doc_id);
+    if (error) {
+      console.error("Error fetching document text:", error);
+      return;
+    }
+
+    // Check if data exists and has entries
+    if (data && data.length > 0) {
+      // Concatenate all text entries to form the full document text
+      const fullDocumentText = data.map((entry) => entry.text).join(" ");
+      console.log(fullDocumentText)
+      // Now that we have the full document text, let's get the summary
+      getDocumentSummary(fullDocumentText);
+    }
+  };
 
   return (
     <VStack w={{ base: "100%", md: "50%" }} margin="auto" p={3}>
@@ -66,7 +111,7 @@ export default function PageAnal({ params }: { params: { doc_id: string } }) {
       <Grid w="100%" templateColumns="repeat(2,1fr)" gap={6}>
         <GridItem id="summary" border="1px solid grey" borderRadius="lg" p={2}>
           <Heading size="lg">Summary</Heading>
-          <Text>This is a summary of the book</Text>
+          <Text>{summary ? summary : "Loading"}</Text>
         </GridItem>
         <GridItem id="PDF" border="1px solid grey" borderRadius="lg" p={2}>
           <Heading size="lg">PDF</Heading>
