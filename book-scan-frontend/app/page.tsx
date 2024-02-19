@@ -22,7 +22,7 @@ export default function Page() {
   return (
     <VStack h="100%" minH="100vh" justifyContent="space-between" w="100%">
       <HStack w="100%" borderBottom="1px" borderColor="gray.600" px={8}>
-        <Button as={Link} href="/analysis">
+        <Button as={Link} isDisabled>
           Past Scans
         </Button>
         <VStack p={5} h="100%" w="100%">
