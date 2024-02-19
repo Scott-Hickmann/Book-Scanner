@@ -1,6 +1,8 @@
 # Recollect Book Scanner: Leave No Book Left Behind
 
-Winner of 2024 Treehacks Best Hardware Prize
+Winner of Treehacks 2024 Best Hardware Prize
+
+https://devpost.com/software/recollect-ytn0bk
 
 ## Inspiration
 
